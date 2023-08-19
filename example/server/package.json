@@ -6,12 +6,14 @@
   "scripts": {
     "start": "node dist/server.ts",
     "dev": "nodemon src/server.ts",
+    "dev-client": "nodemon src/client.ts",
     "build": "tsc --build"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@grpc/grpc-js": "^1.9.0"
+    "@grpc/grpc-js": "^1.9.0",
+    "@grpc/proto-loader": "^0.7.8"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.4.0",

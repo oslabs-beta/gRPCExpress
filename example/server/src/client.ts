@@ -16,35 +16,25 @@ const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
 
 const todo_proto = protoDescriptor.todos; // the package
 
-const todoList = [{ id: 1, task: 'hi' }];
-
-// @ts-ignore
-function getTodos(call, callback) {
-  callback(null, {
-    todos: todoList,
-  });
-}
-
-// @ts-ignore
-function addTodo(call, callback) {
-  todoList.push(call.request);
-  console.log(todoList);
-  callback(null, {});
-}
-
 function main() {
-  const server = new grpc.Server();
+  //@ts-ignore
+  const client = new todo_proto.TodoApp(
+    'localhost:3000',
+    grpc.credentials.createInsecure()
+  );
+
   // @ts-ignore
-  server.addService(todo_proto.TodoApp.service, {
-    getTodos,
-    addTodo,
+  client.getTodos({}, function (err, response) {
+    console.log(response);
   });
-  server.bindAsync(
-    '0.0.0.0:3000',
-    grpc.ServerCredentials.createInsecure(),
-    () => {
-      server.start();
-    }
+
+  client.addTodo(
+    {
+      id: 2,
+      task: 'hello',
+    },
+    // @ts-ignore
+    function (err, response) {}
   );
 }
 
