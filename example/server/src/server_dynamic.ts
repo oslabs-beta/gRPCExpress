@@ -19,7 +19,10 @@ const todo_proto = protoDescriptor.todos; // the package
 const todoList = [{ id: 1, task: 'hi' }];
 
 // @ts-ignore
+// call.request
 function getTodos(call, callback) {
+  // read from cache, if it exists, return cached object
+
   callback(null, {
     todos: todoList,
   });
@@ -27,8 +30,11 @@ function getTodos(call, callback) {
 
 // @ts-ignore
 function addTodo(call, callback) {
+  // do whatever you need with the payload
   todoList.push(call.request);
   console.log(todoList);
+
+  // resopnd to client
   callback(null, {});
 }
 
