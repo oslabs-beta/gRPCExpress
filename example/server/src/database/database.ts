@@ -9,7 +9,7 @@ const stocksList: StocksList = {
       time: new Date().toISOString(),
     },
     {
-      symbol: 'AAPL',
+      symbol: 'APPL',
       name: 'Apple',
       price: 177.23,
       time: new Date().toISOString(),
@@ -18,6 +18,12 @@ const stocksList: StocksList = {
       symbol: 'GOOGL',
       name: 'Google',
       price: 129.08,
+      time: new Date().toISOString(),
+    },
+    {
+      symbol: 'MSFT',
+      name: 'Microsoft',
+      price: 100.0,
       time: new Date().toISOString(),
     },
   ],
@@ -38,7 +44,7 @@ const userStocks: UserStock[] = [
   },
   {
     username: 'Jun',
-    symbol: [],
+    symbol: ['MSFT'],
   },
 ];
 
