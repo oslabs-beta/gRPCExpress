@@ -11,7 +11,8 @@ function main() {
   const stocksService: IStocksService = {
     async getStocks(call, callback) {
       const stocksList = await db.query(call.request);
-      console.log(stocksList);
+      // console.log(stocksList);
+      console.log('ran');
       callback(null, stocksList);
     },
     addStock() {},
