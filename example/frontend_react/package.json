@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "webpack serve",
-    "protoc": "protoc -I=protos stocks.proto --js_out=import_style=commonjs,binary:protos --grpc-web_out=import_style=commonjs+dts,mode=grpcweb:protos"
+    "protoc": "protoc -I=protos stocks.proto --js_out=import_style=commonjs,binary:protos --grpc-web_out=import_style=commonjs+dts,mode=grpcweb:protos",
+    "concepts": "ts-node concepts/extendClass.ts"
   },
   "author": "",
   "license": "ISC",

@@ -1,65 +1,48 @@
+import { StocksServiceClient } from '../protos/StocksServiceClientPb';
 import UnaryInterceptor from './Interceptor';
+import * as grpcWeb from 'grpc-web';
+
+interface client {
+  [key: string]: any;
+}
 
 class GrpcExpress {
-  clients: {};
-  _actualClients: {};
+  constructor() {}
 
-  constructor() {
-    this.clients = {
-      // stocksClient: {
-      //   getStocks(user) {
-      //     console.log(1);
-      //     return this._actualClients.stocksClient.getStocks(user);
-      //   },
-      // },
-    };
-    // this._actualClients = {
-    //   stocksClient,
-    // };
-  }
-
-  add(Client, url, credentials, options) {
-    class NewStocksClient extends Client {
-      constructor(url, credentials, options) {
+  getClient(
+    Client: any,
+    url: string,
+    credentials?: null | { [index: string]: string },
+    options?: { [x: string]: any }
+  ) {
+    class NewClient extends Client {
+      constructor(
+        url: string,
+        credentials?: null | { [index: string]: string },
+        options?: { [x: string]: any }
+      ) {
         super(url, credentials, options);
-      }
-      // !todo override the old method instead of creating a new one
-      // how to add context
-      newGetStocks(request, metadata) {
-        console.log('request', request.toObject());
-        console.log(request);
-        try {
-          return this.getStocks(request, metadata);
-        } catch (e) {
-          return localStorage.getItem(JSON.stringify(request.toObject()));
+
+        const methods = Object.getOwnPropertyNames(Client.prototype).filter(
+          prop => prop != 'constructor'
+        );
+
+        for (const method of methods) {
+          const newMethod = function (request: any, metadata?: any) {
+            console.log('test');
+            return Client.prototype[method].call(this, request, metadata);
+          };
+          this[method] = newMethod;
         }
       }
-    }
-    // inject the interceptor
-    const interceptor = new UnaryInterceptor();
-    const newOptions = options;
-    if (options['unaryInterceptors']) {
-      newOptions['unaryInterceptors'].push(interceptor);
-    } else {
-      newOptions['unaryInterceptors'] = [interceptor];
+
+      // getStocks(request, metadata) {
+      //   return super.getStocks.call(this, request, metadata);
+      // }
     }
 
-    const client = new NewStocksClient(url, credentials, newOptions);
-    // save the client to context
-
-    //methodDescriptorGetStocks
-
-    // console.log(client);
-
-    localStorage.setItem('clients', JSON.stringify(this.clients));
-    // add the client to clients
-    this.clients['stocksClient'] = client;
+    return new NewClient(url, credentials, options);
   }
-
-  // async call(user) {
-  //   console.log(1);
-  //   return await this.clients.stocksClient.getStocks(user);
-  // }
 }
 
 export default GrpcExpress;

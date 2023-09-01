@@ -4,10 +4,11 @@ import { useCache, useSetCache } from '../contexts/context';
 export default class UnaryInterceptor {
   intercept(request, invoker) {
     // const cache = useCache();
+    // console.log(request);
     // const reqMsg = request.getRequestMessage();
     // reqMsg = user {user: 'Murat'}
     // if (cache?.[reqMsg]) {
-    throw new RpcError(StatusCode.CANCELLED, 'Returning cache', {});
+    // throw new RpcError(StatusCode.CANCELLED, 'Returning cache', {});
     // }
 
     // explore eventlistener to trigger context

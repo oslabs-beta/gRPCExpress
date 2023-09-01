@@ -12,6 +12,10 @@ export function useSetCache() {
   return useContext(SetContext);
 }
 
+export function useGrpcExpress() {
+  return useContext(ProviderContext);
+}
+
 function ContextProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<any>(null);
 
