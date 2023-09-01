@@ -15,11 +15,12 @@ export default function App() {
   const user = new User();
   user.setUsername('Arthur');
 
-  // console.log(grpcExpress.clients.stocksClient.getStocks(user));
+  // console.log(grpcExpress.clients.stocksClient.newGetStocks(user));
 
   useEffect(() => {
     (async () => {
-      console.log(await grpcExpress.call(user));
+      console.log(await grpcExpress.clients.stocksClient.newGetStocks(user));
+      // console.log(await grpcExpress.call(user));
     })();
   }, []);
 

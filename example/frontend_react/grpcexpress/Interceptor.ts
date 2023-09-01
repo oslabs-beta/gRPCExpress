@@ -7,7 +7,7 @@ export default class UnaryInterceptor {
     // const reqMsg = request.getRequestMessage();
     // reqMsg = user {user: 'Murat'}
     // if (cache?.[reqMsg]) {
-    // throw new RpcError(StatusCode.CANCELLED, 'Returning cache', {});
+    throw new RpcError(StatusCode.CANCELLED, 'Returning cache', {});
     // }
 
     // explore eventlistener to trigger context
