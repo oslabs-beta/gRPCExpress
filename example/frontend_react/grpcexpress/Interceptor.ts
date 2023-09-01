@@ -5,10 +5,14 @@ export default class UnaryInterceptor {
   intercept(request, invoker) {
     // const cache = useCache();
     // const reqMsg = request.getRequestMessage();
-    // // reqMsg = user {user: 'Murat'}
+    // reqMsg = user {user: 'Murat'}
     // if (cache?.[reqMsg]) {
-    //   throw new RpcError(StatusCode.CANCELLED, 'Returning cache', {});
+    // throw new RpcError(StatusCode.CANCELLED, 'Returning cache', {});
     // }
+
+    // explore eventlistener to trigger context
+
+    localStorage.setItem('test', 'test');
 
     return invoker(request).then(response => {
       // const setCache = useSetCache();
