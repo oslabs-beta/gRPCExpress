@@ -11,8 +11,9 @@ const root = createRoot(container);
 
 // const context = useCache();
 
-// const client = new GrpcExpress();
-// client.add(StocksServiceClient, 'http://localhost:8080');
+// const grpcExpress = new GrpcExpress();
+// grpcExpress.add(StocksServiceClient, 'http://localhost:8080');
+// grpcExpress.clients.StocksService
 
 root.render(
   // <GrpcExpressProvider client={client}>

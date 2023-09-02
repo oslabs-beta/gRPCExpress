@@ -1,4 +1,11 @@
-import React, { ReactNode, createContext, useContext, useState } from 'react';
+import React, {
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
+import eventEmitter from '../concepts/eventEmitter';
 
 const Context = createContext<any>(undefined);
 const SetContext = createContext<any>(undefined);
@@ -19,6 +26,10 @@ export function useGrpcExpress() {
 function ContextProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<any>(null);
 
+  useEffect(() => {
+    setState(eventEmitter.store);
+  }, [eventEmitter.store]);
+
   return (
     <Context.Provider value={state}>
       <SetContext.Provider value={setState}>{children}</SetContext.Provider>
@@ -34,4 +45,16 @@ export function GrpcExpressProvider({ children, client }) {
       </ProviderContext.Provider>
     </ContextProvider>
   );
+}
+
+export function grpcHook(func) {
+  const setCache = useContext(SetContext);
+  let res;
+  useEffect(() => {
+    (async () => {
+      res = await func();
+      setCache(res);
+    })();
+  }, []);
+  return res;
 }

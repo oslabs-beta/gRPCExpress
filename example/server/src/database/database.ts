@@ -52,7 +52,7 @@ const db = {
   query(username: User): Promise<StocksList> {
     const user = username.username;
     const stocksSet = new Set(
-      userStocks.filter(e => e.username === user)[0].symbol
+      userStocks.filter(e => e.username === user)[0]?.symbol || []
     );
     const filteredStocksList = stocksList.stocks.filter(e =>
       stocksSet.has(e.symbol)

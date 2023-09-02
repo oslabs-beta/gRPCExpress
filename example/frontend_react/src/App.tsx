@@ -1,8 +1,13 @@
 import React, { useEffect } from 'react';
 
-import { Stock, User } from '../protos/stocks_pb';
+import { Stock, StocksList, User } from '../protos/stocks_pb';
 
-import { useGrpcExpress, useSetCache } from '../contexts/context';
+import {
+  useGrpcExpress,
+  useSetCache,
+  useCache,
+  grpcHook,
+} from '../contexts/context';
 import { StocksServiceClient } from '../protos/StocksServiceClientPb';
 
 import GrpcExpress from '../grpcexpress/GrpcExpress';
@@ -14,41 +19,18 @@ const client = grpcExpress.getClient(
 ) as StocksServiceClient;
 
 export default function App() {
-  // const client = useGrpcExpress();
-  // const stocks = client.add(
-  //   StocksServiceClient,
-  //   'http://localhost:8080'
-  // ) as StocksServiceClient;
+  const cache = useCache();
   const user = new User();
   user.setUsername('Arthur');
-  // const grpcExpress = useGrpcExpress();
-  // const setCache = useSetCache();
 
-  // console.log(grpcExpress.clients.stocksClient.newGetStocks(user));
+  async function handleClick() {
+    const response = await client.getStocks(user, {});
+    console.log(response);
+  }
 
-  useEffect(() => {
-    (async () => {
-      console.log(
-        // await grpcExpress.clients.StocksServiceClient.getStocks(user)
-        await client.getStocks(user, {})
-      );
-      // await stocks.getStocks(user, {})
-      // console.log(await grpcExpress.call(user));
-    })();
-  }, []);
-
-  return <div>A</div>;
+  return (
+    <div>
+      <button onClick={handleClick}>Click</button>
+    </div>
+  );
 }
-
-// const client = new StocksServiceClient('http://localhost:8080', null);
-
-// export default function App() {
-//   const user = new User();
-//   user.setUsername('Arthur');
-//   client.getStocks(user, {}, (err, res) => {
-//     console.log(err);
-//     console.log(res);
-//   });
-
-//   return <div></div>;
-// }
