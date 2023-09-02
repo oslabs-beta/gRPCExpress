@@ -2,7 +2,9 @@ class EventEmitter {
   #store: { [key: string]: any };
 
   constructor() {
-    this.#store = {};
+    this.#store = this.loadStore() || {};
+    this.syncStore = this.syncStore.bind(this);
+    window.addEventListener('beforeunload', this.syncStore);
   }
 
   subscribe(key: string, options: { [key: string]: any }) {
@@ -17,13 +19,15 @@ class EventEmitter {
     return this.#store[key];
   }
 
-  put(key: string, value: any) {
-    this.#store[key] = value;
-    return true;
+  syncStore() {
+    localStorage.setItem('grpcExpressStore', JSON.stringify(this.#store));
   }
 
-  getAll() {
-    return this.#store;
+  loadStore() {
+    const store = localStorage.getItem('grpcExpressStore');
+    if (store) {
+      return JSON.parse(store);
+    }
   }
 }
 
