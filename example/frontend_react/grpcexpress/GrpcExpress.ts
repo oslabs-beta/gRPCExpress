@@ -1,7 +1,4 @@
 import eventEmitter from '../concepts/eventEmitter';
-import UnaryInterceptor from './Interceptor';
-
-import { RpcError } from 'grpc-web';
 
 class GrpcExpress {
   getClient(
@@ -25,42 +22,30 @@ class GrpcExpress {
         for (const method of methods) {
           const newMethod = async function (request: any, metadata?: any) {
             const key = `${method}:${JSON.stringify(request)}`;
+            const cache = eventEmitter.get(key);
 
-            let response;
-
-            try {
-              const newMetadata = metadata || {};
-              newMetadata['storeKey'] = key;
-              response = await Client.prototype[method].call(
-                this,
-                request,
-                newMetadata
-              );
-            } catch (e: unknown) {
-              const err = e as RpcError;
-              if (err.message === 'Returning cache') {
-                return eventEmitter.get(key);
-              } else {
-                return err;
-              }
+            if (cache) {
+              return cache;
             }
 
-            return response;
+            try {
+              const response = await Client.prototype[method].call(
+                this,
+                request,
+                metadata
+              );
+              eventEmitter.subscribe(key, response);
+              return response;
+            } catch (e: unknown) {
+              return e;
+            }
           };
           this[method] = newMethod;
         }
       }
     }
 
-    const interceptor = new UnaryInterceptor();
-    const newOptions = options || {};
-    if (options?.['unaryInterceptors']) {
-      newOptions['unaryInterceptors'].push(interceptor);
-    } else {
-      newOptions['unaryInterceptors'] = [interceptor];
-    }
-
-    return new NewClient(url, credentials, newOptions);
+    return new NewClient(url, credentials, options);
   }
 }
 

@@ -16,15 +16,6 @@ class EventEmitter {
   get(key: string) {
     return this.#store[key];
   }
-
-  put(key: string, value: any) {
-    this.#store[key] = value;
-    return true;
-  }
-
-  getAll() {
-    return this.#store;
-  }
 }
 
 const eventEmitter = new EventEmitter();
