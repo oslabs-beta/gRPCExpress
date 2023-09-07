@@ -20,8 +20,18 @@ class GrpcExpress {
         );
 
         for (const method of methods) {
-          const newMethod = async function (request: any, metadata?: any) {
+          const newMethod = async function (request: any, metadata: any = {}) {
             const key = `${method}:${JSON.stringify(request)}`;
+
+            const cacheOption = metadata.cache;
+
+            switch (cacheOption) {
+              case 'invalidate':
+                return eventEmitter.unsubscribe(key);
+              default:
+                break;
+            }
+
             const cache = eventEmitter.get(key);
 
             if (cache) {
