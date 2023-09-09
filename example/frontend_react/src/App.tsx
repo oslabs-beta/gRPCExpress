@@ -1,36 +1,67 @@
-import React, { useEffect } from 'react';
+'use client';
 
-import { Stock, StocksList, User } from '../protos/stocks_pb';
-
-import {
-  useGrpcExpress,
-  useSetCache,
-  useCache,
-  grpcHook,
-} from '../contexts/context';
+import React, { useEffect, useState } from 'react';
+import ButtonGroupComponent from './components/ButtonGroupComponent';
+import grpcExpressClient from '../grpcexpress/grpcExpressClient';
 import { StocksServiceClient } from '../protos/StocksServiceClientPb';
+import { Container, Stack } from '@mui/material';
+import Store from './components/Store';
+import eventEmitter from '../concepts/eventEmitter';
+import Responses from './components/Responses';
+import { User, Stock } from '../protos/stocks_pb';
 
-import GrpcExpress from '../grpcexpress/GrpcExpress';
-
-const grpcExpress = new GrpcExpress();
-const client = grpcExpress.getClient(
-  StocksServiceClient,
-  'http://localhost:8080'
-) as StocksServiceClient;
+type Response = {
+  timeSpan: number;
+  symbol: string;
+  name: string;
+  price: number;
+};
 
 export default function App() {
-  const cache = useCache();
-  const user = new User();
-  user.setUsername('Arthur');
+  const [responses, setResponse] = useState<Response[]>([]);
+  const [store, setStore] = useState<{ [key: string]: any }>({});
+  // initialize a Grpc client by passing in the original client into our custom grpcExpressClient function
+  const Client = grpcExpressClient(StocksServiceClient);
 
-  async function handleClick() {
-    const response = await client.getStocks(user, {});
-    console.log(response);
+  const client = new Client('http://localhost:8080');
+
+  async function getStockInfo(
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) {
+    const element = e.target as HTMLButtonElement;
+    const username = element.value;
+    const user = new User();
+    user.setUsername(username);
+    const before = Date.now();
+    const stockList = await client.getStocks(user, {});
+    console.log(stockList);
+    // const timeSpan = Date.now() - before;
+    // const stocksObject = stockList.toObject();
+    // const stocksListWithTime = stocksObject.stocksList.map(e => ({
+    //   timeSpan,
+    //   symbol: e.symbol,
+    //   name: e.name,
+    //   price: e.price,
+    // }));
+    // setResponse(prev => [...prev, ...stocksListWithTime]);
+    // setStore(eventEmitter.getStore());
   }
 
+  useEffect(() => {
+    setStore(eventEmitter.getStore());
+  }, []);
+
   return (
-    <div>
-      <button onClick={handleClick}>Click</button>
-    </div>
+    <main>
+      <ButtonGroupComponent handleClick={getStockInfo} />
+      <Stack direction="row" justifyContent="space-between" mt={8} mx={8}>
+        <Container sx={{ flexBasis: 1 }}>
+          <Responses responses={responses} />
+        </Container>
+        <Container sx={{ flexBasis: 1 }}>
+          <Store store={{ store }} />
+        </Container>
+      </Stack>
+    </main>
   );
 }

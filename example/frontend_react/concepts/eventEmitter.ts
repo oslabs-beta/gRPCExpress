@@ -40,15 +40,31 @@ class EventEmitter {
     return value;
   }
 
+  getStore() {
+    console.log(this.#store.data);
+    if (!this.#store.data) {
+      return [];
+    }
+
+    const responses = Object.values(this.#store.data);
+    return responses;
+  }
+
   syncStore() {
     this.adjustCapacity();
-    localStorage.setItem('grpcExpressStore', JSON.stringify(this.#store));
+    const mapArray = Array.from(this.#store.data.entries());
+    localStorage.setItem('grpcExpressStore', JSON.stringify(mapArray));
   }
 
   loadStore() {
-    const store = localStorage.getItem('grpcExpressStore');
-    if (store) {
-      return JSON.parse(store);
+    const data = localStorage.getItem('grpcExpressStore');
+
+    if (data) {
+      return {
+        data: new Map(JSON.parse(data)),
+        expire: null,
+        capacity: 100,
+      };
     }
   }
 
