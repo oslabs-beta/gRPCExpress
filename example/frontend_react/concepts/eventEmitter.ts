@@ -6,7 +6,9 @@ class EventEmitter {
   };
 
   constructor() {
-    this.#store = this.loadStore() || this.initStore();
+    this.#store = this.initStore();
+    this.loadStore = this.loadStore.bind(this);
+    this.loadStore();
     this.syncStore = this.syncStore.bind(this);
     window.addEventListener('beforeunload', this.syncStore);
   }
@@ -41,30 +43,37 @@ class EventEmitter {
   }
 
   getStore() {
-    console.log(this.#store.data);
     if (!this.#store.data) {
       return [];
     }
 
-    const responses = Object.values(this.#store.data);
+    const responses = this.#store.data;
+
     return responses;
   }
 
   syncStore() {
     this.adjustCapacity();
-    const mapArray = Array.from(this.#store.data.entries());
-    localStorage.setItem('grpcExpressStore', JSON.stringify(mapArray));
+    const arr: [string, string][] = [];
+    this.#store.data.forEach((v, k) => {
+      arr.push([k, v.toString()]);
+    });
+
+    localStorage.setItem('grpcExpressStore', JSON.stringify(arr));
   }
 
   loadStore() {
     const data = localStorage.getItem('grpcExpressStore');
 
-    if (data) {
-      return {
-        data: new Map(JSON.parse(data)),
-        expire: null,
-        capacity: 100,
-      };
+    if (!data) return;
+
+    const json = JSON.parse(data);
+
+    if (json.length) {
+      json.forEach(array => {
+        const buffer = new Uint8Array(array[1].split(','));
+        this.subscribe(array[0], buffer);
+      });
     }
   }
 

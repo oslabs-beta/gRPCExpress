@@ -34,17 +34,16 @@ export default function App() {
     user.setUsername(username);
     const before = Date.now();
     const stockList = await client.getStocks(user, {});
-    console.log(stockList);
-    // const timeSpan = Date.now() - before;
-    // const stocksObject = stockList.toObject();
-    // const stocksListWithTime = stocksObject.stocksList.map(e => ({
-    //   timeSpan,
-    //   symbol: e.symbol,
-    //   name: e.name,
-    //   price: e.price,
-    // }));
-    // setResponse(prev => [...prev, ...stocksListWithTime]);
-    // setStore(eventEmitter.getStore());
+    const timeSpan = Date.now() - before;
+    const stocksObject = stockList.toObject();
+    const stocksListWithTime = stocksObject.stocksList.map(e => ({
+      timeSpan,
+      symbol: e.symbol,
+      name: e.name,
+      price: e.price,
+    }));
+    setResponse(prev => [...prev, ...stocksListWithTime]);
+    setStore(eventEmitter.getStore());
   }
 
   useEffect(() => {
