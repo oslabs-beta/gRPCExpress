@@ -22,7 +22,7 @@ export default function Responses({ responses }: ResponsesProps) {
     timeSpan: stock.timeSpan,
     symbol: stock.symbol,
     name: stock.name,
-    price: stock.price,
+    price: stock.price.toFixed(2),
   }));
 
   const columns: GridColDef[] = [

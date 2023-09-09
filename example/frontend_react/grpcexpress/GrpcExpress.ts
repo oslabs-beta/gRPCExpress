@@ -22,6 +22,8 @@ class GrpcExpress {
         for (const method of methods) {
           const newMethod = async function (request: any, metadata?: any) {
             const key = `${method}:${JSON.stringify(request)}`;
+            // setting timeout to 10 seconds for testing
+            const sessionMaxTime = 10;
             const cache = eventEmitter.get(key);
 
             if (cache) {
@@ -34,7 +36,8 @@ class GrpcExpress {
                 request,
                 metadata
               );
-              eventEmitter.subscribe(key, response);
+              // added sessionMaxTime
+              eventEmitter.subscribe(key, response, sessionMaxTime);
               return response;
             } catch (e: unknown) {
               return e;

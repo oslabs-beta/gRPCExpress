@@ -1,36 +1,60 @@
 class EventEmitter {
   #store: {
     data: Map<string, any>;
-    expire: any;
     capacity: number; // ~5MB
   };
 
   constructor() {
-    this.#store = this.loadStore() || this.initStore();
+    this.#store = this.initStore();
+    this.loadStore = this.loadStore.bind(this);
+    this.loadStore();
     this.syncStore = this.syncStore.bind(this);
     window.addEventListener('beforeunload', this.syncStore);
   }
 
-  subscribe(key: string, options: { [key: string]: any }) {
-    if (this.#store.data.size % 100 === 0) {
-      this.adjustCapacity();
-    }
+  // method taking in key and session time
+  timer(key: string, sessionMaxTime: number) {
+    // give key an expire property that is the setTimeout to delete cache with key key
+    this.#store.data.get(key)['expire'] = setTimeout(
+      () => {
+        this.unsubscribe(key);
+      },
+      sessionMaxTime * 1000,
+      sessionMaxTime,
+      key
+    );
+  }
 
-    if (
-      this.#store.data.size === this.#store.capacity &&
-      !this.#store.data.has(key)
-    ) {
-      const [[k]] = this.#store.data;
-      this.#store.data.delete(k);
-    } else if (this.#store.data.has(key)) {
+  subscribe(
+    key: string,
+    buffer: { [key: string]: any },
+    sessionMaxTime: number
+  ) {
+    // if (this.#store.data.size % 100 === 0) {
+    //   this.adjustCapacity();
+    // }
+
+    if (this.#store.data.has(key)) {
       this.#store.data.delete(key);
     }
 
-    this.#store.data.set(key, options);
+    while (this.#store.data.size >= this.#store.capacity) {
+      const [[k]] = this.#store.data;
+      this.unsubscribe(k);
+      // this.#store.data.delete(k);
+    }
+
+    this.#store.data.set(key, { buffer });
+
+    // caching timer
+    this.timer(key, sessionMaxTime);
   }
 
   unsubscribe(key: string) {
-    delete this.#store[key];
+    if (this.#store.data.get(key)['expire']) {
+      clearTimeout(this.#store.data.get(key)['expire']);
+    }
+    this.#store.data.delete(key);
   }
 
   get(key: string) {
@@ -41,38 +65,47 @@ class EventEmitter {
   }
 
   getStore() {
-    console.log(this.#store.data);
     if (!this.#store.data) {
       return [];
     }
 
-    const responses = Object.values(this.#store.data);
+    const responses = this.#store.data;
+
     return responses;
   }
 
   syncStore() {
     this.adjustCapacity();
-    const mapArray = Array.from(this.#store.data.entries());
-    localStorage.setItem('grpcExpressStore', JSON.stringify(mapArray));
+    const arr: [string, string][] = [];
+    // TODO also save the expiration date
+    this.#store.data.forEach((v, k) => {
+      arr.push([k, v.buffer.toString()]);
+    });
+
+    localStorage.setItem('grpcExpressStore', JSON.stringify(arr));
   }
 
   loadStore() {
     const data = localStorage.getItem('grpcExpressStore');
 
-    if (data) {
-      return {
-        data: new Map(JSON.parse(data)),
-        expire: null,
-        capacity: 100,
-      };
+    if (!data) return;
+
+    const json = JSON.parse(data);
+
+    console.log(json);
+
+    if (json.length) {
+      json.forEach(array => {
+        const buffer = new Uint8Array(array[1].split(','));
+        this.subscribe(array[0], buffer, 10); // fix this to get the existing expiration time
+      });
     }
   }
 
-  initStore(capacity: number = 100) {
+  initStore(capacity: number = 2) {
     const cache = new Map();
     return {
       data: cache,
-      expire: null,
       capacity: capacity,
     };
   }

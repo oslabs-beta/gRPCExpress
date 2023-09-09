@@ -19,7 +19,7 @@ type Response = {
 
 export default function App() {
   const [responses, setResponse] = useState<Response[]>([]);
-  const [store, setStore] = useState<{ [key: string]: any }>({});
+  const [store, setStore] = useState<{ [key: string]: any } | null>(null);
   // initialize a Grpc client by passing in the original client into our custom grpcExpressClient function
   const Client = grpcExpressClient(StocksServiceClient);
 
@@ -34,17 +34,16 @@ export default function App() {
     user.setUsername(username);
     const before = Date.now();
     const stockList = await client.getStocks(user, {});
-    console.log(stockList);
-    // const timeSpan = Date.now() - before;
-    // const stocksObject = stockList.toObject();
-    // const stocksListWithTime = stocksObject.stocksList.map(e => ({
-    //   timeSpan,
-    //   symbol: e.symbol,
-    //   name: e.name,
-    //   price: e.price,
-    // }));
-    // setResponse(prev => [...prev, ...stocksListWithTime]);
-    // setStore(eventEmitter.getStore());
+    const timeSpan = Date.now() - before;
+    const stocksObject = stockList.toObject();
+    const stocksListWithTime = stocksObject.stocksList.map(e => ({
+      timeSpan,
+      symbol: e.symbol,
+      name: e.name,
+      price: e.price,
+    }));
+    setResponse(prev => [...prev, ...stocksListWithTime]);
+    setStore(eventEmitter.getStore());
   }
 
   useEffect(() => {

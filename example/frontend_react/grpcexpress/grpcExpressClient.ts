@@ -1,3 +1,4 @@
+import deserializerStore from '../concepts/deserializerStore';
 import eventEmitter from '../concepts/eventEmitter';
 import pendingStore from '../concepts/pendingStore';
 
@@ -16,11 +17,15 @@ export function grpcExpressClient<T extends { new (...args: any[]): {} }>(
 
       for (let method of methods) {
         const Method = async function (request: any, metadata: any = {}) {
-          const key = `${method}:${JSON.stringify(request)}`;
+          const key = `${method}:${request.serializeBinary()}`;
           const cache = eventEmitter.get(key);
 
           if (cache) {
-            return cache;
+            if (deserializerStore.has(method)) {
+              const deserialize = deserializerStore.getDeserializer(method);
+
+              return deserialize(cache.buffer);
+            }
           }
 
           try {
@@ -36,8 +41,16 @@ export function grpcExpressClient<T extends { new (...args: any[]): {} }>(
               request,
               metadata
             );
-            eventEmitter.subscribe(key, response);
+            const serialized = response.serializeBinary();
+
+            const deserializer =
+              response.__proto__.constructor.deserializeBinary;
+
+            deserializerStore.addDeserializer(method, deserializer);
+            const sessionMaxTime = 10;
+            eventEmitter.subscribe(key, serialized, sessionMaxTime);
             pendingStore.setDone(key);
+
             return response;
           } catch (e: unknown) {
             pendingStore.setDone(key);
