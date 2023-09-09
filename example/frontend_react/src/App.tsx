@@ -19,7 +19,7 @@ type Response = {
 
 export default function App() {
   const [responses, setResponse] = useState<Response[]>([]);
-  const [store, setStore] = useState<{ [key: string]: any }>({});
+  const [store, setStore] = useState<{ [key: string]: any } | null>(null);
   // initialize a Grpc client by passing in the original client into our custom grpcExpressClient function
   const Client = grpcExpressClient(StocksServiceClient);
 

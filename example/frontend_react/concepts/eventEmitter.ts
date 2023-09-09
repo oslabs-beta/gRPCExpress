@@ -14,21 +14,19 @@ class EventEmitter {
   }
 
   subscribe(key: string, options: { [key: string]: any }) {
-    if (this.#store.data.size % 100 === 0) {
-      this.adjustCapacity();
-    }
-
-    if (
-      this.#store.data.size === this.#store.capacity &&
-      !this.#store.data.has(key)
-    ) {
-      const [[k]] = this.#store.data;
-      this.#store.data.delete(k);
-    } else if (this.#store.data.has(key)) {
+    // if (this.#store.data.size % 100 === 0) {
+    //   this.adjustCapacity();
+    // }
+    if (this.#store.data.has(key)) {
       this.#store.data.delete(key);
     }
 
-    this.#store.data.set(key, options);
+    while (this.#store.data.size >= this.#store.capacity) {
+      const [[k]] = this.#store.data;
+      this.#store.data.delete(k);
+    }
+
+    return this.#store.data.set(key, options);
   }
 
   unsubscribe(key: string) {
@@ -77,7 +75,7 @@ class EventEmitter {
     }
   }
 
-  initStore(capacity: number = 100) {
+  initStore(capacity: number = 2) {
     const cache = new Map();
     return {
       data: cache,
