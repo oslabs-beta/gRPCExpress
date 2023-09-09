@@ -1,7 +1,6 @@
 class EventEmitter {
   #store: {
     data: Map<string, any>;
-    expire: any;
     capacity: number; // ~5MB
   };
 
@@ -13,24 +12,47 @@ class EventEmitter {
     window.addEventListener('beforeunload', this.syncStore);
   }
 
-  subscribe(key: string, options: { [key: string]: any }) {
-    // if (this.#store.data.size % 100 === 0) {
-    //   this.adjustCapacity();
-    // }
-    if (this.#store.data.has(key)) {
-      this.#store.data.delete(key);
+  // method taking in key and session time
+  timer(key: string, sessionMaxTime: number) {
+    // give key an expire property that is the setTimeout to delete cache with key key
+    this.#store.data.get(key)['expire'] = setTimeout(
+      () => {
+        this.unsubscribe(key);
+      },
+      sessionMaxTime * 1000,
+      sessionMaxTime,
+      key
+    );
+  }
+
+  subscribe(
+    key: string,
+    options: { [key: string]: any },
+    sessionMaxTime: number
+  ) {
+    if (this.#store.data.size % 100 === 0) {
+      this.adjustCapacity();
     }
 
-    while (this.#store.data.size >= this.#store.capacity) {
+    if (
+      this.#store.data.size === this.#store.capacity &&
+      !this.#store.data.has(key)
+    ) {
       const [[k]] = this.#store.data;
       this.#store.data.delete(k);
     }
 
-    return this.#store.data.set(key, options);
+    this.#store.data.set(key, options);
+
+    // caching timer
+    this.timer(key, sessionMaxTime);
   }
 
   unsubscribe(key: string) {
-    delete this.#store[key];
+    if (this.#store.data.get(key)['expire']) {
+      clearTimeout(this.#store.data.get(key)['expire']);
+    }
+    this.#store.data.delete(key);
   }
 
   get(key: string) {
@@ -79,7 +101,6 @@ class EventEmitter {
     const cache = new Map();
     return {
       data: cache,
-      expire: null,
       capacity: capacity,
     };
   }
