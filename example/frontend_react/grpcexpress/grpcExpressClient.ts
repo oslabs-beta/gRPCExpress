@@ -1,6 +1,6 @@
+import deserializerStore from '../concepts/deserializerStore';
 import eventEmitter from '../concepts/eventEmitter';
 import pendingStore from '../concepts/pendingStore';
-import deserializerStore from '../concepts/deserializerStore';
 
 export function grpcExpressClient<T extends { new (...args: any[]): {} }>(
   constructor: T
@@ -24,7 +24,7 @@ export function grpcExpressClient<T extends { new (...args: any[]): {} }>(
             if (deserializerStore.has(method)) {
               const deserialize = deserializerStore.getDeserializer(method);
 
-              return deserialize(cache);
+              return deserialize(cache.buffer);
             }
           }
 
@@ -47,7 +47,8 @@ export function grpcExpressClient<T extends { new (...args: any[]): {} }>(
               response.__proto__.constructor.deserializeBinary;
 
             deserializerStore.addDeserializer(method, deserializer);
-            eventEmitter.subscribe(key, serialized);
+            const sessionMaxTime = 10;
+            eventEmitter.subscribe(key, serialized, sessionMaxTime);
             pendingStore.setDone(key);
 
             return response;

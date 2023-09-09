@@ -27,22 +27,24 @@ class EventEmitter {
 
   subscribe(
     key: string,
-    options: { [key: string]: any },
+    buffer: { [key: string]: any },
     sessionMaxTime: number
   ) {
-    if (this.#store.data.size % 100 === 0) {
-      this.adjustCapacity();
+    // if (this.#store.data.size % 100 === 0) {
+    //   this.adjustCapacity();
+    // }
+
+    if (this.#store.data.has(key)) {
+      this.#store.data.delete(key);
     }
 
-    if (
-      this.#store.data.size === this.#store.capacity &&
-      !this.#store.data.has(key)
-    ) {
+    while (this.#store.data.size >= this.#store.capacity) {
       const [[k]] = this.#store.data;
-      this.#store.data.delete(k);
+      this.unsubscribe(k);
+      // this.#store.data.delete(k);
     }
 
-    this.#store.data.set(key, options);
+    this.#store.data.set(key, { buffer });
 
     // caching timer
     this.timer(key, sessionMaxTime);
@@ -75,8 +77,9 @@ class EventEmitter {
   syncStore() {
     this.adjustCapacity();
     const arr: [string, string][] = [];
+    // TODO also save the expiration date
     this.#store.data.forEach((v, k) => {
-      arr.push([k, v.toString()]);
+      arr.push([k, v.buffer.toString()]);
     });
 
     localStorage.setItem('grpcExpressStore', JSON.stringify(arr));
@@ -89,10 +92,12 @@ class EventEmitter {
 
     const json = JSON.parse(data);
 
+    console.log(json);
+
     if (json.length) {
       json.forEach(array => {
         const buffer = new Uint8Array(array[1].split(','));
-        this.subscribe(array[0], buffer);
+        this.subscribe(array[0], buffer, 10); // fix this to get the existing expiration time
       });
     }
   }

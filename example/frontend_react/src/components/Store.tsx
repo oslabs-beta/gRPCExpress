@@ -16,7 +16,7 @@ export default function Store({ store }) {
     array.push(
       <List key={k}>
         <ListItem>
-          <ListItemText primary={`${v.toString().slice(0, 30)}...`} />
+          <ListItemText primary={`${v.buffer.toString().slice(0, 30)}...`} />
         </ListItem>
       </List>
     )
