@@ -1,11 +1,25 @@
 {
   "name": "grpcexpress",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vitest",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "build": "tsc",
+    "ci": "npm run lint && npm run test && npm run build"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "Panda Whales",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.6.0",
+    "@typescript-eslint/eslint-plugin": "^6.6.0",
+    "@typescript-eslint/parser": "^6.6.0",
+    "eslint": "^8.49.0",
+    "eslint-config-prettier": "^9.0.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.4"
+  }
 }
