@@ -21,5 +21,8 @@
     "jest-environment-jsdom": "^29.7.0",
     "typescript": "^5.2.2",
     "vitest": "^0.34.4"
+  },
+  "dependencies": {
+    "grpc-web": "^1.4.2"
   }
 }
