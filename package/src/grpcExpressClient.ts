@@ -1,6 +1,7 @@
 import { RpcError } from 'grpc-web';
 import cacheStore from './CacheStore';
 import deserializerStore from './DeserializerStore';
+import pendingStore from './PendingStore';
 
 export function grpcExpressClient<T extends { new (...args: any[]): object }>(
   constructor: T
@@ -44,6 +45,14 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
           let response: any;
 
           try {
+            if (pendingStore.has(key)) {
+              return await new Promise(resolve => {
+                pendingStore.addCallback(key, resolve);
+              });
+            }
+
+            pendingStore.setPending(key);
+
             response = await constructor.prototype[method].call(
               this,
               request,
@@ -52,6 +61,7 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
 
             const serialized = response.serializeBinary();
             cacheStore.subscribe(key, serialized);
+
             const deserializer =
               response.__proto__.constructor.deserializeBinary;
             deserializerStore.addDeserializer(method, deserializer);
@@ -59,6 +69,8 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
             return response;
           } catch (e: any) {
             response = e as RpcError;
+          } finally {
+            pendingStore.setDone(key);
           }
 
           return response;
