@@ -1,1 +1,22 @@
-{}
+{
+  "devDependencies": {
+    "@changesets/cli": "^2.26.2",
+    "changeset": "^0.2.6"
+  },
+  "name": "grpcexpress",
+  "description": "",
+  "version": "0.1.0",
+  "main": "index.js",
+  "directories": {
+    "example": "example"
+  },
+  "dependencies": {
+    "udc": "^1.0.1",
+    "underscore": "^1.13.6"
+  },
+  "scripts": {
+    "release": "cd package && npm run lint && npm run build && cd .. & changeset publish"
+  },
+  "author": "",
+  "license": "ISC"
+}

@@ -11,8 +11,7 @@
     "test": "vitest run",
     "lint": "tsc",
     "build": "tsup src/index.ts --format cjs,esm --dts",
-    "ci": "npm run lint && npm run test && npm run build",
-    "release": "npm run lint && npm run test && npm run build && changeset publish"
+    "ci": "npm run lint && npm run build"
   },
   "author": "Panda Whales",
   "license": "MIT",

@@ -1,11 +1,9 @@
-name: Publish
+name: CI
 
 on:
   push:
     branches:
-      - main
-      - dev
-      - cicd
+      - **
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -26,11 +24,6 @@ jobs:
         working-directory: ./package
         run: npm install
 
-      - name: Create Release Pull Request or Publish
-        id: changesets
-        uses: changesets/action@v1
-        with:
-          publish: npm run release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Run CI
+        working-directory: ./package
+        run: npm run ci
