@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package stocks;
+
+import "protobuf-ts.proto";
+
+service StocksService {
+    option (ts.server) = GRPC1_SERVER;
+    option (ts.client) = GRPC1_CLIENT;
+    rpc GetStocks (User) returns (StocksList) {}
+    rpc AddStock (UserStock) returns (StocksList) {}
+    rpc DeleteStock (UserStock) returns (StocksList) {}
+}
+
+message Empty {}
+
+message StocksList {
+    repeated Stock stocks = 1;
+}
+
+message Stock {
+    string symbol = 1;
+    string name = 2;
+    float price = 3;
+    string time = 4;
+}
+
+message StockSymbol {
+    string symbol = 1;
+}
+
+message User {
+    string username = 1;
+}
+
+message UserStock {
+    string username = 1;
+    repeated string symbol = 2;
+}

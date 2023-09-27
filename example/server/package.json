@@ -5,9 +5,31 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/server.ts",
-    "dev": "nodemon src/server.ts",
-    "build": "tsc --build"
+    "dev": "ts-node src/server_static.ts",
+    "dev-client": "ts-node src/client_static.ts",
+    "build": "tsc --build",
+    "tsproto": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_opt=esModuleInterop=true --ts_proto_out=. ./protos/todos.proto",
+    "protoc": "npx protoc --ts_out protos/. --proto_path protos protos/stocks.proto"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@grpc/grpc-js": "^1.9.0",
+    "@grpc/proto-loader": "^0.7.8",
+    "@protobuf-ts/grpc-transport": "^2.9.1",
+    "@protobuf-ts/plugin": "^2.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.1",
+    "@typescript-eslint/eslint-plugin": "^6.4.0",
+    "@typescript-eslint/parser": "^6.4.0",
+    "eslint": "^8.47.0",
+    "eslint-config-prettier": "^9.0.0",
+    "jest": "^29.6.2",
+    "nodemon": "^3.0.1",
+    "prettier": "^3.0.2",
+    "stylelint-config-prettier": "^9.0.5",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6"
+  }
 }
