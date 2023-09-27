@@ -1,4 +1,6 @@
 import { RpcError } from 'grpc-web';
+import cacheStore from './CacheStore';
+import deserializerStore from './DeserializerStore';
 
 export function grpcExpressClient<T extends { new (...args: any[]): object }>(
   constructor: T
@@ -28,6 +30,17 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
             );
           }
 
+          const key = `${method}:${request.serializeBinary()}`;
+          const cache = cacheStore.get(key);
+
+          if (cache) {
+            if (deserializerStore.has(method)) {
+              const deserialize = deserializerStore.getDeserializer(method);
+
+              return deserialize(cache.buffer);
+            }
+          }
+
           let response: any;
 
           try {
@@ -36,6 +49,12 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
               request,
               metadata
             );
+
+            const serialized = response.serializeBinary();
+            cacheStore.subscribe(key, serialized);
+            const deserializer =
+              response.__proto__.constructor.deserializeBinary;
+            deserializerStore.addDeserializer(method, deserializer);
 
             return response;
           } catch (e: any) {
