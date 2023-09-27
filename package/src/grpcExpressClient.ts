@@ -21,6 +21,9 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
           metadata?: { [key: string]: string },
           callback?: (err: RpcError, response: any) => void
         ): Promise<any> => {
+          const { cacheOption } = metadata || {};
+          delete metadata?.cacheOption;
+
           // we do not cache response when called using the callback method
           if (callback) {
             return constructor.prototype[method].call(
@@ -29,6 +32,19 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
               metadata,
               callback
             );
+          }
+
+          switch (cacheOption) {
+            case 'nocache':
+              return await constructor.prototype[method].call(
+                this,
+                request,
+                metadata
+              );
+            case 'cache':
+              break;
+            default:
+              break;
           }
 
           const key = `${method}:${request.serializeBinary()}`;

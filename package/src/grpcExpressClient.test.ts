@@ -43,12 +43,24 @@ describe('grpcExpressClient', () => {
 
   it('should be able to return a cached response', async () => {
     const client = new Client('http://localhost:8080');
-    user.setUsername('Murat');
+    user.setUsername('Arthur');
     await client.getStocks(user, {});
     const start = new Date();
     await client.getStocks(user, {});
     const end = new Date();
     expect(Number(end) - Number(start)).lessThan(1000);
+  });
+
+  it('should be able to pass no cache option', async () => {
+    const client = new Client('http://localhost:8080');
+    user.setUsername('Shiyu');
+    await client.getStocks(user, {
+      cacheOption: 'nocache',
+    });
+    const start = new Date();
+    await client.getStocks(user, {});
+    const end = new Date();
+    expect(Number(end) - Number(start)).greaterThan(2000);
   });
 
   // it('should work with the callback method', () => {
