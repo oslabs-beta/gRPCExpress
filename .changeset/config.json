@@ -9,6 +9,6 @@
   "updateInternalDependencies": "patch",
   "ignore": [],
   "publishConfig": {
-    "directory": "./package"
+    "directory": "./package/dist"
   }
 }

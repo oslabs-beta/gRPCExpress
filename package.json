@@ -1,19 +1,19 @@
 {
-  "name": "grpcexpress",
+  "name": "@grpcexpress/grpcexpress",
+  "version": "0.1.1",
   "description": "",
-  "version": "0.1.0",
-  "main": "index.js",
-  "directories": {
-    "example": "example"
-  },
+  "private": false,
+  "main": "./package/dist/index.js",
+  "module": "./package/dist/index.mjs",
+  "types": "./package/dist/index.d.ts",
   "scripts": {
     "release": "cd package && npm run lint && npm run build && cd .. & changeset publish"
   },
-  "author": "",
+  "author": "Panda Whales",
+  "license": "MIT",
   "dependencies": {
     "udc": "^1.0.1",
     "underscore": "^1.13.6",
     "@changesets/cli": "^2.26.2"
-  },
-  "license": "ISC"
+  }
 }
