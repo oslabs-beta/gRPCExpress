@@ -1,0 +1,11 @@
+.changeset
+.github
+example
+src
+node_modules
+.eslintignore
+.eslintrc.cjs
+.gitignore
+tsconfig.json
+vite.config.ts
+README.md
