@@ -1,0 +1,1 @@
+export { grpcExpressClient } from './grpcExpressClient';
