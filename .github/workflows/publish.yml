@@ -23,7 +23,6 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        working-directory: ./package
         run: npm install
 
       - name: Create Release Pull Request or Publish
