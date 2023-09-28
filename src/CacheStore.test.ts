@@ -5,7 +5,7 @@ import { CacheStore } from './CacheStore';
 describe('CacheStore', () => {
   let cacheStore: CacheStore;
   beforeAll(() => {
-    cacheStore = new CacheStore();
+    cacheStore = new CacheStore(600000);
   });
 
   it('should create a cache store', () => {
@@ -16,7 +16,7 @@ describe('CacheStore', () => {
     const buffer = new Uint8Array([1]);
     cacheStore.subscribe('testKey', buffer);
     const value = cacheStore.get('testKey');
-    expect(value).toEqual({ buffer: buffer });
+    expect(value).toEqual(buffer);
   });
 
   it('should be able to unsubscribe', () => {
