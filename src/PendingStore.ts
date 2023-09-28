@@ -1,4 +1,4 @@
-import cacheStore from './CacheStore';
+import CacheStore from './CacheStore';
 
 type item = {
   isPending: boolean;
@@ -7,9 +7,11 @@ type item = {
 
 class PendingStore {
   #store: { [key: string]: item };
+  #cacheStore: CacheStore;
 
-  constructor() {
+  constructor(cacheStore: CacheStore) {
     this.#store = {};
+    this.#cacheStore = cacheStore;
   }
 
   setPending(key: string) {
@@ -21,7 +23,7 @@ class PendingStore {
 
   setDone(key: string) {
     for (const resolve of this.#store[key].callbacks) {
-      resolve(cacheStore.get(key));
+      resolve(this.#cacheStore.get(key));
     }
     delete this.#store[key];
   }
@@ -39,6 +41,4 @@ class PendingStore {
   }
 }
 
-const pendingStore = new PendingStore();
-
-export default pendingStore;
+export default PendingStore;
