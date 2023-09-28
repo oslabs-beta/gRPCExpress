@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - **
+      - '**'
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
