@@ -1,11 +1,15 @@
 import { RpcError } from 'grpc-web';
-import cacheStore from './CacheStore';
+import CacheStore from './CacheStore';
 import deserializerStore from './DeserializerStore';
-import pendingStore from './PendingStore';
+import PendingStore from './PendingStore';
 
 export function grpcExpressClient<T extends { new (...args: any[]): object }>(
-  constructor: T
+  constructor: T,
+  cacheDuration: number = 600000 // defaults to 10 minutes
 ) {
+  const cacheStore = new CacheStore(cacheDuration);
+  const pendingStore = new PendingStore(cacheStore);
+
   return class extends constructor {
     constructor(...args: any[]) {
       super(...args);
@@ -18,11 +22,16 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
       for (const method of methods) {
         const geMethod = async (
           request: any,
-          metadata?: { [key: string]: string },
+          metadata?: { [key: string]: string } & {
+            cacheOptions?: {
+              cache: string;
+              duration: number;
+            };
+          },
           callback?: (err: RpcError, response: any) => void
         ): Promise<any> => {
-          const { cacheOption } = metadata || {};
-          delete metadata?.cacheOption;
+          const { cacheOptions } = metadata || {};
+          delete metadata?.cacheOptions;
 
           // we do not cache response when called using the callback method
           if (callback) {
@@ -34,7 +43,8 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
             );
           }
 
-          switch (cacheOption) {
+          // if no cache is passed, skip the caching step
+          switch (cacheOptions?.cache) {
             case 'nocache':
               return await constructor.prototype[method].call(
                 this,
@@ -54,7 +64,7 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
             if (deserializerStore.has(method)) {
               const deserialize = deserializerStore.getDeserializer(method);
 
-              return deserialize(cache.buffer);
+              return deserialize(cache);
             }
           }
 
@@ -76,7 +86,13 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
             );
 
             const serialized = response.serializeBinary();
-            cacheStore.subscribe(key, serialized);
+            cacheStore.subscribe(
+              key,
+              serialized,
+              // if a duration is passed in the function call
+              // override the default duration
+              cacheOptions?.duration || cacheDuration
+            );
 
             const deserializer =
               response.__proto__.constructor.deserializeBinary;

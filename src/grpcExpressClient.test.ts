@@ -1,7 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
-import { StocksServiceClient } from '../../example/frontend_react/protos/StocksServiceClientPb';
-import { User } from '../../example/frontend_react/protos/stocks_pb';
-import cacheStore from './CacheStore';
+import { StocksServiceClient } from '../example/frontend_react/protos/StocksServiceClientPb';
+import { User } from '../example/frontend_react/protos/stocks_pb';
 import grpcExpressClient from './grpcExpressClient';
 
 describe('grpcExpressClient', () => {
@@ -9,7 +8,7 @@ describe('grpcExpressClient', () => {
   let user: User;
 
   beforeAll(() => {
-    Client = grpcExpressClient(StocksServiceClient);
+    Client = grpcExpressClient(StocksServiceClient, 30000);
     user = new User();
   });
 
@@ -21,7 +20,12 @@ describe('grpcExpressClient', () => {
   it('should be able to get stock list with existing user', async () => {
     const client = new Client('http://localhost:8080');
     user.setUsername('Murat');
-    const stocks = await client.getStocks(user, {});
+    const stocks = await client.getStocks(user, {
+      cacheOptions: {
+        cache: 'cache',
+        duration: 10000,
+      },
+    });
     expect(stocks.toObject().stocksList.length).greaterThan(0);
   });
 
@@ -30,15 +34,6 @@ describe('grpcExpressClient', () => {
     user.setUsername('Test');
     const stocks = await client.getStocks(user, {});
     expect(stocks.toObject().stocksList.length).toEqual(0);
-  });
-
-  it('should be able to cache a response', async () => {
-    const client = new Client('http://localhost:8080');
-    user.setUsername('Murat');
-    const stocks = await client.getStocks(user, {});
-    const key = `getStocks:${user.serializeBinary()}`;
-    const cachedBuffer = cacheStore.get(key)?.buffer;
-    expect(cachedBuffer).toEqual(stocks.serializeBinary());
   });
 
   it('should be able to return a cached response', async () => {
@@ -55,7 +50,9 @@ describe('grpcExpressClient', () => {
     const client = new Client('http://localhost:8080');
     user.setUsername('Shiyu');
     await client.getStocks(user, {
-      cacheOption: 'nocache',
+      cacheOptions: {
+        cache: 'nocache',
+      },
     });
     const start = new Date();
     await client.getStocks(user, {});

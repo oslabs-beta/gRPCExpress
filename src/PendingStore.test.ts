@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import pendingStore from './PendingStore';
+import CacheStore from './CacheStore';
+import PendingStore from './PendingStore';
 
 describe('PendingStore', () => {
+  const cacheStore = new CacheStore(600000);
+  const pendingStore = new PendingStore(cacheStore);
   it('should be able to set a function call as pending', () => {
     pendingStore.setPending('test');
     expect(pendingStore.has('test')).toEqual(true);

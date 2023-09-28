@@ -1,5 +1,11 @@
 # @grpcexpress/grpcexpress
 
+## 0.2.1
+
+### Patch Changes
+
+- Refactored the cache expiration from setTimeout to checking an expiration date
+
 ## 0.2.0
 
 ### Minor Changes
