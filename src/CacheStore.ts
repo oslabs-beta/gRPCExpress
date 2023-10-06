@@ -1,4 +1,4 @@
-import Heap from './heap';
+import Heap from './Heap';
 
 export type CacheRecord = {
   buffer: Uint8Array;
