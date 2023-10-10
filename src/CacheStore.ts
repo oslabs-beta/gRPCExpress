@@ -135,7 +135,7 @@ export class CacheStore {
   calculateValue(initialCall: number, cost: number, calledCount: number) {
     calledCount += 1;
     const frequency = calledCount / (Number(new Date()) - initialCall);
-    const value = cost * frequency;
+    const value = (1 / cost) * frequency;
     return value;
   }
 }
