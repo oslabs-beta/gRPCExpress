@@ -1,5 +1,11 @@
 # @grpcexpress/grpcexpress
 
+## 0.2.2
+
+### Patch Changes
+
+- Implemented a cost aware algorithm
+
 ## 0.2.1
 
 ### Patch Changes
