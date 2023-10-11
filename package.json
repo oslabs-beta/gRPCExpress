@@ -1,6 +1,6 @@
 {
   "name": "@grpcexpress/grpcexpress",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "",
   "private": false,
   "main": "./dist/index.js",
@@ -29,6 +29,8 @@
     "vitest": "^0.34.4"
   },
   "dependencies": {
-    "grpc-web": "^1.4.2"
+    "grpc-web": "^1.4.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   }
 }

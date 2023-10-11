@@ -1,5 +1,11 @@
 # @grpcexpress/grpcexpress
 
+## 0.2.3
+
+### Patch Changes
+
+- Implemented custom hook useGrpcExpress
+
 ## 0.2.2
 
 ### Patch Changes
