@@ -1,14 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { grpcExpressClient } from '@grpcexpress/grpcexpress';
 import ButtonGroupComponent from './components/ButtonGroupComponent';
-import grpcExpressClient from '../grpcexpress/grpcExpressClient';
 import { StocksServiceClient } from '../protos/StocksServiceClientPb';
 import { Container, Stack } from '@mui/material';
-import Store from './components/Store';
-import eventEmitter from '../concepts/eventEmitter';
 import Responses from './components/Responses';
-import { User, Stock } from '../protos/stocks_pb';
+import { User } from '../protos/stocks_pb';
 
 type Response = {
   timeSpan: number;
@@ -19,10 +17,9 @@ type Response = {
 
 export default function App() {
   const [responses, setResponse] = useState<Response[]>([]);
-  const [store, setStore] = useState<{ [key: string]: any } | null>(null);
+
   // initialize a Grpc client by passing in the original client into our custom grpcExpressClient function
   const Client = grpcExpressClient(StocksServiceClient);
-
   const client = new Client('http://localhost:8080');
 
   async function getStockInfo(
@@ -43,12 +40,9 @@ export default function App() {
       price: e.price,
     }));
     setResponse(prev => [...prev, ...stocksListWithTime]);
-    setStore(eventEmitter.getStore());
   }
 
-  useEffect(() => {
-    setStore(eventEmitter.getStore());
-  }, []);
+  useEffect(() => {}, []);
 
   return (
     <main>
@@ -56,9 +50,6 @@ export default function App() {
       <Stack direction="row" justifyContent="space-between" mt={8} mx={8}>
         <Container sx={{ flexBasis: 1 }}>
           <Responses responses={responses} />
-        </Container>
-        <Container sx={{ flexBasis: 1 }}>
-          <Store store={{ store }} />
         </Container>
       </Stack>
     </main>
