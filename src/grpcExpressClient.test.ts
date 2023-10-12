@@ -41,9 +41,12 @@ describe('grpcExpressClient', () => {
     user.setUsername('Arthur');
     await client.getStocks(user, {});
     const start = new Date();
+    await new Promise(resolve => {
+      setTimeout(resolve, 2000);
+    });
     await client.getStocks(user, {});
     const end = new Date();
-    expect(Number(end) - Number(start)).lessThan(1000);
+    expect(Number(end) - Number(start)).lessThan(3000);
   });
 
   it('should be able to pass no cache option', async () => {

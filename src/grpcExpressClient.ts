@@ -11,9 +11,12 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
   const pendingStore = new PendingStore(cacheStore);
 
   return class extends constructor {
+    cacheStore: CacheStore;
+    pendingStore: PendingStore;
     constructor(...args: any[]) {
       super(...args);
-
+      this.cacheStore = cacheStore;
+      this.pendingStore = pendingStore;
       // get all functions from the service
       const methods = Object.getOwnPropertyNames(constructor.prototype).filter(
         prop => prop != 'constructor'
@@ -71,7 +74,9 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
           let response: any;
 
           try {
-            if (pendingStore.has(key)) {
+            const isPending = pendingStore.has(key);
+
+            if (isPending) {
               return await new Promise(resolve => {
                 pendingStore.addCallback(key, resolve);
               });
@@ -98,11 +103,9 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
               response.__proto__.constructor.deserializeBinary;
             deserializerStore.addDeserializer(method, deserializer);
 
-            return response;
+            pendingStore.setDone(key, deserializer);
           } catch (e: any) {
             response = e as RpcError;
-          } finally {
-            pendingStore.setDone(key);
           }
 
           return response;
