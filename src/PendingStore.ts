@@ -21,9 +21,14 @@ class PendingStore {
     };
   }
 
-  setDone(key: string) {
+  setDone(key: string, deserializer: (buffer: Uint8Array) => unknown) {
+    // console.log('set done', key);
     for (const resolve of this.#store[key].callbacks) {
-      resolve(this.#cacheStore.get(key));
+      const cache = this.#cacheStore.get(key);
+
+      if (!cache) resolve(undefined);
+
+      resolve(deserializer(cache!));
     }
     delete this.#store[key];
   }
