@@ -7,6 +7,7 @@ import { StocksServiceClient } from '../protos/StocksServiceClientPb';
 import { Container, Stack } from '@mui/material';
 import Responses from './components/Responses';
 import { User } from '../protos/stocks_pb';
+import { useGrpcExpress } from './useGrpcExpress';
 
 type Response = {
   timeSpan: number;
@@ -21,6 +22,14 @@ export default function App() {
   // initialize a Grpc client by passing in the original client into our custom grpcExpressClient function
   const Client = grpcExpressClient(StocksServiceClient);
   const client = new Client('http://localhost:8080');
+
+  const testUser = new User();
+  testUser.setUsername('Murat');
+
+  const { isLoading, isError, data, error } = useGrpcExpress(
+    client.getStocks,
+    testUser
+  );
 
   async function getStockInfo(
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
@@ -46,6 +55,10 @@ export default function App() {
 
   return (
     <main>
+      {isLoading.toString()}
+      {isError.toString()}
+      {data?.toString()}
+      {error?.toString()}
       <ButtonGroupComponent handleClick={getStockInfo} />
       <Stack direction="row" justifyContent="space-between" mt={8} mx={8}>
         <Container sx={{ flexBasis: 1 }}>
