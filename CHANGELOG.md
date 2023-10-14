@@ -1,5 +1,16 @@
 # @grpcexpress/grpcexpress
 
+## 0.3.0
+
+### Minor Changes
+
+- Implemented invalidation method
+
+### Patch Changes
+
+- Updated dependencies
+  - @grpcexpress/grpcexpress@0.3.0
+
 ## 0.2.2
 
 ### Patch Changes
