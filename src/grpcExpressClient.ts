@@ -3,6 +3,11 @@ import CacheStore from './CacheStore';
 import deserializerStore from './DeserializerStore';
 import PendingStore from './PendingStore';
 
+type MethodNames<T> = {
+  // eslint-disable-next-line
+  [K in keyof T]: T[K] extends Function ? K : never
+} [keyof T]
+
 export function grpcExpressClient<T extends { new (...args: any[]): object }>(
   constructor: T,
   cacheDuration: number = 600000 // defaults to 10 minutes
@@ -17,7 +22,7 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
       // get all functions from the service
       const methods = Object.getOwnPropertyNames(constructor.prototype).filter(
         prop => prop != 'constructor'
-      );
+      )
 
       for (const method of methods) {
         const geMethod = async (
@@ -110,6 +115,10 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
 
         this[method] = geMethod;
       }
+    }
+    invalidate (method: MethodNames<InstanceType<T>>, msg: any) {
+      const key = `${String(method)}:${msg.serializeBinary()}`;   
+      this.cacheStore.unsubscribe(key);
     }
   };
 }
