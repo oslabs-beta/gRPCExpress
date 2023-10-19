@@ -1,6 +1,6 @@
 {
   "name": "@grpcexpress/usegrpcexpress",
-  "version": "0.2.4",
+  "version": "0.2.6",
   "description": "",
   "private": false,
   "main": "./dist/index.js",

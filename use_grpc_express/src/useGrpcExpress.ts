@@ -1,20 +1,20 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 
 export function useGrpcExpress(client, message) {
-  const memoizedClient = useMemo(() => client)
-  const memoizedMessage = useMemo(() => message)
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<any>(null);
 
   useEffect(() => {
-    memoizedClient(memoizedMessage)
+    client(message)
       .then(res => {
-        setData(res), setIsLoading(false);
+        setIsLoading(false);
+        setData(res);
       })
-      .catch(err => {
-        setError(err), setIsError(true);
+      .catch(e => {
+        setIsError(true);
+        setError(e);
       });
   }, []);
 
