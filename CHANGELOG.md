@@ -1,5 +1,11 @@
 # @grpcexpress/grpcexpress
 
+## 0.3.1
+
+### Patch Changes
+
+- Attempt to fix the github publish workflow error
+
 ## 0.3.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "@grpcexpress/grpcexpress",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "",
   "private": false,
   "main": "./dist/index.js",
@@ -12,7 +12,7 @@
     "lint": "tsc",
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "ci": "npm run lint && npm run build",
-    "publish": "npm run lint && npm run build && changeset publish"
+    "npm-publish": "npm run lint && npm run build && changeset publish"
   },
   "author": "Panda Whales",
   "license": "MIT",
