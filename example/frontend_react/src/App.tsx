@@ -1,14 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { grpcExpressClient } from '@grpcexpress/grpcexpress';
 import ButtonGroupComponent from './components/ButtonGroupComponent';
-import grpcExpressClient from '../grpcexpress/grpcExpressClient';
 import { StocksServiceClient } from '../protos/StocksServiceClientPb';
 import { Container, Stack } from '@mui/material';
-import Store from './components/Store';
-import eventEmitter from '../concepts/eventEmitter';
 import Responses from './components/Responses';
-import { User, Stock } from '../protos/stocks_pb';
+import { User } from '../protos/stocks_pb';
+import { useGrpcExpress } from './useGrpcExpress';
 
 type Response = {
   timeSpan: number;
@@ -19,11 +18,18 @@ type Response = {
 
 export default function App() {
   const [responses, setResponse] = useState<Response[]>([]);
-  const [store, setStore] = useState<{ [key: string]: any } | null>(null);
+
   // initialize a Grpc client by passing in the original client into our custom grpcExpressClient function
   const Client = grpcExpressClient(StocksServiceClient);
-
   const client = new Client('http://localhost:8080');
+
+  const testUser = new User();
+  testUser.setUsername('Murat');
+
+  const { isLoading, isError, data, error } = useGrpcExpress(
+    client.getStocks,
+    testUser
+  );
 
   async function getStockInfo(
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
@@ -43,22 +49,20 @@ export default function App() {
       price: e.price,
     }));
     setResponse(prev => [...prev, ...stocksListWithTime]);
-    setStore(eventEmitter.getStore());
   }
 
-  useEffect(() => {
-    setStore(eventEmitter.getStore());
-  }, []);
+  useEffect(() => {}, []);
 
   return (
     <main>
+      {isLoading.toString()}
+      {isError.toString()}
+      {data?.toString()}
+      {error?.toString()}
       <ButtonGroupComponent handleClick={getStockInfo} />
       <Stack direction="row" justifyContent="space-between" mt={8} mx={8}>
         <Container sx={{ flexBasis: 1 }}>
           <Responses responses={responses} />
-        </Container>
-        <Container sx={{ flexBasis: 1 }}>
-          <Store store={{ store }} />
         </Container>
       </Stack>
     </main>

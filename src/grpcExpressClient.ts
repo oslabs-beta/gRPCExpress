@@ -3,21 +3,26 @@ import CacheStore from './CacheStore';
 import deserializerStore from './DeserializerStore';
 import PendingStore from './PendingStore';
 
+type MethodNames<T> = {
+  // eslint-disable-next-line
+  [K in keyof T]: T[K] extends Function ? K : never
+} [keyof T]
+
 export function grpcExpressClient<T extends { new (...args: any[]): object }>(
   constructor: T,
   cacheDuration: number = 600000 // defaults to 10 minutes
 ) {
-  const cacheStore = new CacheStore(cacheDuration);
-  const pendingStore = new PendingStore(cacheStore);
-
   return class extends constructor {
+    cacheStore: CacheStore;
+    pendingStore: PendingStore;
     constructor(...args: any[]) {
       super(...args);
-
+      this.cacheStore = new CacheStore(cacheDuration);
+      this.pendingStore = new PendingStore(this.cacheStore);
       // get all functions from the service
       const methods = Object.getOwnPropertyNames(constructor.prototype).filter(
         prop => prop != 'constructor'
-      );
+      )
 
       for (const method of methods) {
         const geMethod = async (
@@ -58,7 +63,7 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
           }
 
           const key = `${method}:${request.serializeBinary()}`;
-          const cache = cacheStore.get(key);
+          const cache = this.cacheStore.get(key);
 
           if (cache) {
             if (deserializerStore.has(method)) {
@@ -71,13 +76,15 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
           let response: any;
 
           try {
-            if (pendingStore.has(key)) {
+            const isPending = this.pendingStore.has(key);
+
+            if (isPending) {
               return await new Promise(resolve => {
-                pendingStore.addCallback(key, resolve);
+                this.pendingStore.addCallback(key, resolve);
               });
             }
 
-            pendingStore.setPending(key);
+            this.pendingStore.setPending(key);
 
             response = await constructor.prototype[method].call(
               this,
@@ -86,7 +93,7 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
             );
 
             const serialized = response.serializeBinary();
-            cacheStore.subscribe(
+            this.cacheStore.subscribe(
               key,
               serialized,
               // if a duration is passed in the function call
@@ -98,11 +105,9 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
               response.__proto__.constructor.deserializeBinary;
             deserializerStore.addDeserializer(method, deserializer);
 
-            return response;
+            this.pendingStore.setDone(key, deserializer);
           } catch (e: any) {
             response = e as RpcError;
-          } finally {
-            pendingStore.setDone(key);
           }
 
           return response;
@@ -110,6 +115,10 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
 
         this[method] = geMethod;
       }
+    }
+    invalidate (method: MethodNames<InstanceType<T>>, msg: any) {
+      const key = `${String(method)}:${msg.serializeBinary()}`;   
+      this.cacheStore.unsubscribe(key);
     }
   };
 }
