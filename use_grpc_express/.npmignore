@@ -1,0 +1,7 @@
+.github
+src
+node_modules
+.eslintignore
+.eslintrc.cjs
+.gitignore
+tsconfig.json
