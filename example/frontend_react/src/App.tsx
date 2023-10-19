@@ -7,7 +7,8 @@ import { StocksServiceClient } from '../protos/StocksServiceClientPb';
 import { Container, Stack } from '@mui/material';
 import Responses from './components/Responses';
 import { User } from '../protos/stocks_pb';
-import { useGrpcExpress } from './useGrpcExpress';
+import { useGrpcExpress } from '@grpcexpress/usegrpcexpress';
+// import { useGrpcExpress } from "./useGrpcExpress";
 
 type Response = {
   timeSpan: number;
