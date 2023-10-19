@@ -12,7 +12,7 @@
     "lint": "tsc",
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "ci": "npm run lint && npm run build",
-    "publish": "npm run lint && npm run build && changeset publish"
+    "npm-publish": "npm run lint && npm run build && changeset publish"
   },
   "author": "Panda Whales",
   "license": "MIT",
