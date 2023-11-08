@@ -1,69 +1,72 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import Heap from './heap';
 
 import { CacheRecord } from './CacheStore';
 
 describe('Heap data structure', () => {
-  const record: CacheRecord = {
+  const record1: CacheRecord = {
     buffer: new Uint8Array([1]),
     expirationDate: new Date(2023, 8, 30, 12, 0),
     initialCall: Number(new Date(2023, 8, 30, 12, 0)),
-    cost: 10,
+    size: 10,
     calledCount: 2,
-    value: 3,
+    cost: 3,
   };
 
   const record2: CacheRecord = {
     buffer: new Uint8Array([1]),
     expirationDate: new Date(2023, 8, 30, 12, 0),
     initialCall: Number(new Date(2023, 8, 30, 12, 0)),
-    cost: 10,
+    size: 11,
     calledCount: 2,
-    value: 10,
+    cost: 10,
   };
 
   const record3: CacheRecord = {
     buffer: new Uint8Array([1]),
     expirationDate: new Date(2023, 8, 30, 12, 0),
     initialCall: Number(new Date(2023, 8, 30, 12, 0)),
-    cost: 10,
+    size: 12,
     calledCount: 2,
-    value: 1,
+    cost: 1,
   };
 
+  let heap: Heap;
+
+  beforeEach(() => {
+    heap = new Heap();
+  });
+
   it('should be able to insert a record', () => {
-    const heap = new Heap();
-    heap.insert(record);
-    expect(heap.peak()).toEqual(record);
+    heap.insert(record1);
+    expect(heap.peak()).toEqual(record1);
   });
 
-  it('should be able to insert a second record with a higher value', () => {
-    const heap = new Heap();
-    heap.insert(record);
+  it('should be able to insert a second record with a higher cost', () => {
+    heap.insert(record1);
     heap.insert(record2);
-    expect(heap.peak()).toEqual(record);
+    expect(heap.peak()).toEqual(record2);
   });
 
-  it('should be able to insert a second record with a lower value', () => {
-    const heap = new Heap();
-    heap.insert(record);
+  it('should be able to insert a second record with a lower cost', () => {
+    heap.insert(record1);
     heap.insert(record3);
-    expect(heap.peak()).toEqual(record3);
+    expect(heap.peak()).toEqual(record1);
   });
 
-  it('should be able to delete the top record when there is only 1 record', () => {
-    const heap = new Heap();
-    heap.insert(record);
+  it('should return the size of the deleted node', () => {
+    heap.insert(record1);
     const val = heap.delete();
-    expect(val).toEqual(3);
+    expect(val).toEqual(10);
+    expect(heap.peak()).toBeUndefined();
   });
 
-  it('should be able to delete the top record when there are 2 records', () => {
-    const heap = new Heap();
-    heap.insert(record);
+  it('should maintain the heap property after deleting the root', () => {
+    heap.insert(record1);
+    heap.insert(record2);
     heap.insert(record3);
-    const val = heap.delete();
-    expect(val).toEqual(1);
+    heap.delete();
+    expect(heap.peak()).toEqual(record1);
   });
 });

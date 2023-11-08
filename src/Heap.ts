@@ -20,7 +20,7 @@ class Heap {
 
   delete() {
     if (this.#heap.length === 1) {
-      return this.#heap.pop()!.value;
+      return this.#heap.pop()!.size;
     }
 
     [this.#heap[0], this.#heap[this.#heap.length - 1]] = [
@@ -28,7 +28,7 @@ class Heap {
       this.#heap[0],
     ];
 
-    const value = this.#heap.pop()!.value;
+    const value = this.#heap.pop()!.size;
     this.heapifyDown();
     return value;
   }
@@ -37,7 +37,7 @@ class Heap {
     let index = this.#heap.length - 1;
     let parent = Math.floor((index - 1) / 2);
 
-    while (index > 0 && this.#heap[parent].value > this.#heap[index].value) {
+    while (index > 0 && this.#heap[parent].cost < this.#heap[index].cost) {
       [this.#heap[parent], this.#heap[index]] = [
         this.#heap[index],
         this.#heap[parent],
@@ -52,28 +52,29 @@ class Heap {
     let index = 0;
     let leftChild = 2 * index + 1;
     let rightChild = 2 * index + 2;
+    const size = this.#heap.length;
 
-    while (
-      this.#heap[index].value > this.#heap[leftChild]?.value ||
-      this.#heap[index].value > this.#heap[rightChild]?.value
-    ) {
+    while (leftChild < size) {
+      // Ensuring the left child index is within the array
+      let largestChild = leftChild;
+
       if (
-        this.#heap[leftChild].value < this.#heap[rightChild].value ||
-        !this.#heap[rightChild]
+        rightChild < size &&
+        this.#heap[rightChild].cost > this.#heap[leftChild].cost
       ) {
-        [this.#heap[index], this.#heap[leftChild]] = [
-          this.#heap[leftChild],
-          this.#heap[index],
-        ];
-        index = leftChild;
-      } else {
-        [this.#heap[index], this.#heap[rightChild]] = [
-          this.#heap[rightChild],
-          this.#heap[index],
-        ];
-        index = rightChild;
+        largestChild = rightChild; // Right child exists and is greater than left child
       }
 
+      if (this.#heap[index].cost >= this.#heap[largestChild].cost) {
+        break; // Proper place is found
+      }
+
+      [this.#heap[index], this.#heap[largestChild]] = [
+        this.#heap[largestChild],
+        this.#heap[index],
+      ];
+
+      index = largestChild;
       leftChild = 2 * index + 1;
       rightChild = 2 * index + 2;
     }
@@ -81,52 +82,3 @@ class Heap {
 }
 
 export default Heap;
-// const heap = [];
-
-// // children at indices 2i + 1 and 2i + 2
-// // its parent at index floor((i − 1) / 2).
-
-// function insert(num) {
-//   heap.push(num);
-
-//   heapify();
-// }
-
-// function deleteRoot() {
-//   [heap[0], heap[heap.length - 1]] = [heap[heap.length - 1], heap[0]];
-
-//   heap.pop();
-
-//   heapifyDown();
-// }
-
-// function heapifyUp() {
-//   let index = heap.length - 1;
-//   let parent = Math.floor((index - 1) / 2);
-
-//   while (heap[parent] > heap[index]) {
-//     [heap[parent], heap[index]] = [heap[index], heap[parent]];
-
-//     index = parent;
-//     parent = Math.floor((index - 1) / 2);
-//   }
-// }
-
-// function heapifyDown() {
-//   let index = 0;
-//   let leftChild = 2 * index + 1;
-//   let rightChild = 2 * index + 2;
-
-//   while (heap[index] > heap[leftChild] || heap[index] > heap[rightChild]) {
-//     if (heap[leftChild] < heap[rightChild] || !heap[rightChild]) {
-//       [heap[index], heap[leftChild]] = [heap[leftChild], heap[index]];
-//       index = leftChild;
-//     } else {
-//       [heap[index], heap[rightChild]] = [heap[rightChild], heap[index]];
-//       index = rightChild;
-//     }
-
-//     leftChild = 2 * index + 1;
-//     rightChild = 2 * index + 2;
-//   }
-// }
