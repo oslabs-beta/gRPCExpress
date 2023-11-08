@@ -1,4 +1,4 @@
-import Heap from "./Heap";
+import Heap from './Heap';
 
 export type CacheRecord = {
   buffer: Uint8Array;
@@ -26,7 +26,7 @@ export class CacheStore {
     this.loadStore = this.loadStore.bind(this);
     this.loadStore();
     this.syncStore = this.syncStore.bind(this);
-    window.addEventListener("beforeunload", this.syncStore);
+    window.addEventListener('beforeunload', this.syncStore);
   }
 
   initStore(cacheDuration: number, cacheSize: number): Cache {
@@ -139,18 +139,18 @@ export class CacheStore {
     });
 
     // stringify the array so it can be saved to local storage
-    localStorage.setItem("grpcExpressStore", JSON.stringify(arr));
+    localStorage.setItem('grpcExpressStore', JSON.stringify(arr));
   }
 
   loadStore() {
-    const data = localStorage.getItem("grpcExpressStore");
+    const data = localStorage.getItem('grpcExpressStore');
 
     if (!data) return;
 
     const json = JSON.parse(data) as [string, string, string][];
 
-    json.forEach((array) => {
-      const buffer = new Uint8Array(array[1].split(",").map((e) => Number(e)));
+    json.forEach(array => {
+      const buffer = new Uint8Array(array[1].split(',').map(e => Number(e)));
       // calculate the new expiration
       const difference = Number(new Date(array[2])) - Number(new Date());
       if (difference > 0) {

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import Heap from './heap';
+import Heap from './Heap';
 
 import { CacheRecord } from './CacheStore';
 
