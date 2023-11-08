@@ -1,12 +1,12 @@
-import Heap from './Heap';
+import Heap from "./Heap";
 
 export type CacheRecord = {
   buffer: Uint8Array;
   expirationDate: Date;
   initialCall: number; // date in ms
-  cost: number;
+  size: number;
   calledCount: number;
-  value: number;
+  cost: number;
 };
 
 type Cache = {
@@ -20,21 +20,21 @@ export class CacheStore {
   #cache: Cache;
   #heap: Heap;
 
-  constructor(cacheDuration: number) {
-    this.#cache = this.initStore(cacheDuration);
+  constructor(cacheDuration: number, cacheSize: number) {
+    this.#cache = this.initStore(cacheDuration, cacheSize);
     this.#heap = new Heap();
     this.loadStore = this.loadStore.bind(this);
     this.loadStore();
     this.syncStore = this.syncStore.bind(this);
-    window.addEventListener('beforeunload', this.syncStore);
+    window.addEventListener("beforeunload", this.syncStore);
   }
 
-  initStore(cacheDuration: number): Cache {
+  initStore(cacheDuration: number, cacheSize: number): Cache {
     const data = new Map<string, CacheRecord>();
     return {
       data: data,
       cacheDuration,
-      capacity: 4 * 10 ** 7, // 5MB in bits
+      capacity: cacheSize,
       currentCapacity: 0,
     };
   }
@@ -48,25 +48,37 @@ export class CacheStore {
       this.#cache.data.delete(key);
     }
 
-    const cost = buffer.length * 8 + key.length * 8;
+    // calculate the expected value of the disk size of the stringified buffer
+    // assuming a normal distribution
+    const ev =
+      buffer.length * (10 / 256 + (90 / 256) * 2 + (156 / 256) * 3) +
+      (buffer.length - 1) +
+      2;
+    // add the size of the key and datetime
+    const evWithKey = ev + key.length * 2 + 2 + 48;
+    // increment the currentCapacity to keep track
+    this.#cache.currentCapacity += evWithKey;
 
     const expiration = new Date();
     const initialCall = Number(expiration);
     expiration.setTime(expiration.getTime() + cacheDuration);
     const calledCount = 1;
-    const value = this.calculateValue(initialCall, cost, calledCount);
+    // initialize the value with frequency 1
+    const cost = this.calculateCost(initialCall, evWithKey, calledCount);
 
     this.#cache.data.set(key, {
       buffer,
       expirationDate: expiration,
       initialCall,
-      cost,
+      size: evWithKey,
       calledCount,
-      value,
+      cost,
     });
 
-    // if this record will exceed the capacity, delete records until there is enough space to add the record
-    while (this.#cache.currentCapacity + cost > this.#cache.capacity) {
+    // if this record will exceed the capacity
+    // delete records until there is enough space to add the record
+    while (this.#cache.currentCapacity + evWithKey > this.#cache.capacity) {
+      // delete returns the size of the deleted record
       this.#cache.currentCapacity -= this.#heap.delete();
     }
 
@@ -74,6 +86,10 @@ export class CacheStore {
   }
 
   unsubscribe(key: string) {
+    // subtract the size from currentCapacity
+    const size = this.#cache.data.get(key)?.size || 0;
+
+    this.#cache.currentCapacity -= size;
     this.#cache.data.delete(key);
   }
 
@@ -88,15 +104,15 @@ export class CacheStore {
     }
     // update the calledCount and heap
     record.calledCount += 1;
-    const oldValue = record.value;
-    const newValue = this.calculateValue(
+    const oldCost = record.cost;
+    const newCost = this.calculateCost(
       record.initialCall,
-      record.cost,
+      record.size,
       record.calledCount
     );
-    record.value = newValue;
+    record.cost = newCost;
 
-    if (oldValue > newValue) {
+    if (oldCost > newCost) {
       this.#heap.heapifyDown();
     } else {
       this.#heap.heapifyUp();
@@ -105,7 +121,17 @@ export class CacheStore {
     return record.buffer;
   }
 
+  getCurrentCapacity(): number {
+    return this.#cache.currentCapacity;
+  }
+
   syncStore() {
+    // trim the currentCapacity down to 4.8MB
+    const targetSize = 4.8 * 1024 * 1024;
+    while (this.#cache.currentCapacity > targetSize) {
+      this.#cache.currentCapacity -= this.#heap.delete();
+    }
+
     const arr: [string, string, string][] = [];
     // iterate through the map, push the key and buffer to an array
     this.#cache.data.forEach((v, k) => {
@@ -113,18 +139,19 @@ export class CacheStore {
     });
 
     // stringify the array so it can be saved to local storage
-    localStorage.setItem('grpcExpressStore', JSON.stringify(arr));
+    localStorage.setItem("grpcExpressStore", JSON.stringify(arr));
   }
 
   loadStore() {
-    const data = localStorage.getItem('grpcExpressStore');
+    const data = localStorage.getItem("grpcExpressStore");
 
     if (!data) return;
 
     const json = JSON.parse(data) as [string, string, string][];
 
-    json.forEach(array => {
-      const buffer = new Uint8Array(array[1].split(',').map(e => Number(e)));
+    json.forEach((array) => {
+      const buffer = new Uint8Array(array[1].split(",").map((e) => Number(e)));
+      // calculate the new expiration
       const difference = Number(new Date(array[2])) - Number(new Date());
       if (difference > 0) {
         this.subscribe(array[0], buffer, difference);
@@ -132,10 +159,10 @@ export class CacheStore {
     });
   }
 
-  calculateValue(initialCall: number, cost: number, calledCount: number) {
+  calculateCost(initialCall: number, size: number, calledCount: number) {
     calledCount += 1;
     const frequency = calledCount / (Number(new Date()) - initialCall);
-    const value = (1 / cost) * frequency;
+    const value = (1 / size) * frequency;
     return value;
   }
 }

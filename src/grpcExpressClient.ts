@@ -1,28 +1,29 @@
-import { RpcError } from 'grpc-web';
-import CacheStore from './CacheStore';
-import deserializerStore from './DeserializerStore';
-import PendingStore from './PendingStore';
+import { RpcError } from "grpc-web";
+import CacheStore from "./CacheStore";
+import deserializerStore from "./DeserializerStore";
+import PendingStore from "./PendingStore";
 
 type MethodNames<T> = {
   // eslint-disable-next-line
-  [K in keyof T]: T[K] extends Function ? K : never
-} [keyof T]
+  [K in keyof T]: T[K] extends Function ? K : never;
+}[keyof T];
 
 export function grpcExpressClient<T extends { new (...args: any[]): object }>(
   constructor: T,
-  cacheDuration: number = 600000 // defaults to 10 minutes
+  cacheDuration: number = 600000, // defaults to 10 minutes
+  cacheSize: number = 100 * 1024 * 1024 // default to 100MB in memory cache
 ) {
   return class extends constructor {
     cacheStore: CacheStore;
     pendingStore: PendingStore;
     constructor(...args: any[]) {
       super(...args);
-      this.cacheStore = new CacheStore(cacheDuration);
+      this.cacheStore = new CacheStore(cacheDuration, cacheSize);
       this.pendingStore = new PendingStore(this.cacheStore);
       // get all functions from the service
       const methods = Object.getOwnPropertyNames(constructor.prototype).filter(
-        prop => prop != 'constructor'
-      )
+        (prop) => prop != "constructor"
+      );
 
       for (const method of methods) {
         const geMethod = async (
@@ -50,13 +51,13 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
 
           // if no cache is passed, skip the caching step
           switch (cacheOptions?.cache) {
-            case 'nocache':
+            case "nocache":
               return await constructor.prototype[method].call(
                 this,
                 request,
                 metadata
               );
-            case 'cache':
+            case "cache":
               break;
             default:
               break;
@@ -79,7 +80,7 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
             const isPending = this.pendingStore.has(key);
 
             if (isPending) {
-              return await new Promise(resolve => {
+              return await new Promise((resolve) => {
                 this.pendingStore.addCallback(key, resolve);
               });
             }
@@ -116,8 +117,8 @@ export function grpcExpressClient<T extends { new (...args: any[]): object }>(
         this[method] = geMethod;
       }
     }
-    invalidate (method: MethodNames<InstanceType<T>>, msg: any) {
-      const key = `${String(method)}:${msg.serializeBinary()}`;   
+    invalidate(method: MethodNames<InstanceType<T>>, msg: any) {
+      const key = `${String(method)}:${msg.serializeBinary()}`;
       this.cacheStore.unsubscribe(key);
     }
   };
