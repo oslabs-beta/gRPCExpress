@@ -1,5 +1,11 @@
 # @grpcexpress/grpcexpress
 
+## 0.4.0
+
+### Minor Changes
+
+- Updated the size limit logic for the cache store
+
 ## 0.3.1
 
 ### Patch Changes
