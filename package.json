@@ -1,6 +1,6 @@
 {
   "name": "@grpcexpress/grpcexpress",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "",
   "private": false,
   "main": "./dist/index.js",
@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vitest",
     "test": "vitest run",
+    "testCacheStore": "vitest CacheStore",
     "lint": "tsc",
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "ci": "npm run lint && npm run build",

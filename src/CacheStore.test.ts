@@ -1,69 +1,68 @@
-import { beforeAll, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { CacheStore } from './CacheStore';
-// export type CacheRecord = {
-//   buffer: Uint8Array;
-//   expirationDate: Date;
-//   initialCall: number; // date in ms
-//   cost: number;
-//   calledCount: number;
-//   value: number;
-// };
-describe('CacheStore', () => {
+import { CacheStore } from "./CacheStore";
+
+// Mocking the global localStorage
+const mockLocalStorage = {
+  setItem: vi.fn(),
+  getItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+};
+
+global.localStorage = mockLocalStorage as any;
+
+describe("CacheStore", () => {
   // const window: Record<string, any> = {
   //   store: {},
   // };
-  global.localStorage.store = {};
-
-  global.localStorage.setItem = function (key: string, value: string) {
-    this.store[key] = value;
-  };
-
-  global.localStorage.getItem = function (key: string) {
-    return this.store[key];
-  };
-
-  globalThis.window = window;
 
   let cacheStore: CacheStore;
-  beforeAll(() => {
-    cacheStore = new CacheStore(600000);
+  const key = "testKey";
+  const buffer = new Uint8Array([1, 2, 3]);
+  const mockCacheDuration = 10000; // 10 seconds
+  const mockCacheSize = 5 * 1024 * 1024; // 5MB
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    cacheStore = new CacheStore(mockCacheDuration, mockCacheSize);
   });
 
-  it('should create a cache store', () => {
-    expect(cacheStore).not.toBe(undefined);
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
-  it('should be able to subscribe with a string', () => {
-    const buffer = new Uint8Array([1]);
-    cacheStore.subscribe('testKey', buffer);
-    const value = cacheStore.get('testKey');
-    expect(value).toEqual(buffer);
+  it("should be able to subscribe a cache and retrieve it", () => {
+    cacheStore.subscribe(key, buffer);
+    expect(cacheStore.get(key)).toEqual(buffer);
   });
 
-  it('should be able to unsubscribe', () => {
-    const buffer = new Uint8Array([1]);
-    cacheStore.subscribe('testKey', buffer);
-    cacheStore.unsubscribe('testKey');
-    const value = cacheStore.get('testKey');
-    expect(value).toBe(undefined);
+  it("should not retrieve an expired buffer", () => {
+    const subscriptionTime = new Date();
+    // Subscribe with a buffer that will expire immediately
+    cacheStore.subscribe(key, buffer, 0);
+    // Advance system time to simulate that current time is past the expiration time
+    vi.setSystemTime(subscriptionTime.getTime() + 10000);
+    expect(cacheStore.get(key)).toBeUndefined();
   });
 
-  it('should sync the store to local storage', () => {
-    // const map = new Map<string, CacheRecord>();
-    // const cache1: CacheRecord = {
-    //   buffer: new Uint8Array([1]),
-    //   expirationDate: new Date('2023-11-01'),
-    //   initialCall: Number(new Date()),
-    //   cost: 10,
-    //   calledCount: 10,
-    //   value: 10,
-    // };
-    // map.set('cache1', cache1);
-    const buffer = new Uint8Array([1]);
-    cacheStore.subscribe('testKey', buffer);
-    cacheStore.syncStore();
+  it("should decrease the currentCapacity when unsubscribed", () => {
+    cacheStore.subscribe(key, buffer);
+    const initialCapacity = cacheStore.getCurrentCapacity();
+    cacheStore.unsubscribe(key);
+    expect(cacheStore.getCurrentCapacity()).toBeLessThan(initialCapacity);
+  });
 
-    console.log(localStorage.getItem('grpcExpressStore'));
+  it("should calculate cost correctly", () => {
+    const initialCall = Date.now();
+    const calledCount = 5;
+    const cost = cacheStore.calculateCost(
+      initialCall,
+      buffer.length,
+      calledCount
+    );
+    const expectedCost =
+      (1 / buffer.length) * ((calledCount + 1) / (Date.now() - initialCall));
+    expect(cost).toBeCloseTo(expectedCost);
   });
 });
