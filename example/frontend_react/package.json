@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "webpack serve",
+    "build": "webpack",
+    "start": "webpack serve --open",
     "protoc": "protoc -I=protos stocks.proto --js_out=import_style=commonjs,binary:protos --grpc-web_out=import_style=commonjs+dts,mode=grpcweb:protos",
     "concepts": "ts-node concepts/extendClass.ts"
   },
@@ -13,7 +14,8 @@
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@grpcexpress/usegrpcexpress": "^0.2.6",
+    "@grpcexpress/grpcexpress": "^0.3.1",
+    "@grpcexpress/usegrpcexpress": "^0.2.7",
     "@mui/material": "^5.14.8",
     "@mui/x-data-grid": "^6.13.0",
     "google-protobuf": "^3.21.2",
