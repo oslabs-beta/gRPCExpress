@@ -2,13 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { grpcExpressClient } from '@grpcexpress/grpcexpress';
+import { useGrpcExpress } from '@grpcexpress/usegrpcexpress';
 import ButtonGroupComponent from './components/ButtonGroupComponent';
 import { StocksServiceClient } from '../protos/StocksServiceClientPb';
 import { Container, Stack } from '@mui/material';
 import Responses from './components/Responses';
 import { User } from '../protos/stocks_pb';
-import { useGrpcExpress } from '@grpcexpress/usegrpcexpress';
-// import { useGrpcExpress } from "./useGrpcExpress";
 
 type Response = {
   timeSpan: number;
@@ -17,20 +16,11 @@ type Response = {
   price: number;
 };
 
+const Client = grpcExpressClient(StocksServiceClient);
+const client = new Client('http://localhost:8080');
+
 export default function App() {
   const [responses, setResponse] = useState<Response[]>([]);
-
-  // initialize a Grpc client by passing in the original client into our custom grpcExpressClient function
-  const Client = grpcExpressClient(StocksServiceClient);
-  const client = new Client('http://localhost:8080');
-
-  const testUser = new User();
-  testUser.setUsername('Murat');
-
-  const { isLoading, isError, data, error } = useGrpcExpress(
-    client.getStocks,
-    testUser
-  );
 
   async function getStockInfo(
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
@@ -52,19 +42,35 @@ export default function App() {
     setResponse(prev => [...prev, ...stocksListWithTime]);
   }
 
-  useEffect(() => {}, []);
+  // create test user
+  const testUser = new User();
+  testUser.setUsername('Shiyu');
+  // test useGrpcExpress hook
+  const { data, error, isLoading, isError } = useGrpcExpress(
+    client.getStocks,
+    testUser
+  );
+
+  useEffect(() => {
+    if (data) {
+      setResponse(prev => [...prev, ...data.toObject().stocksList]);
+    }
+  }, [data]);
 
   return (
     <main>
-      {isLoading.toString()}
-      {isError.toString()}
-      {data?.toString()}
-      {error?.toString()}
       <ButtonGroupComponent handleClick={getStockInfo} />
       <Stack direction="row" justifyContent="space-between" mt={8} mx={8}>
         <Container sx={{ flexBasis: 1 }}>
           <Responses responses={responses} />
         </Container>
+      </Stack>
+      <Stack direction="column" justifyContent="space-between" mt={8} mx={8}>
+        <h2>Hook Tests</h2>
+        <p>isLoading: {isLoading ? 'true' : 'false'}</p>
+        <p>isError: {isError ? 'true' : 'false'}</p>
+        {isError && <p>error: {JSON.stringify(error)}</p>}
+        {!isLoading && <p>Response added to the table</p>}
       </Stack>
     </main>
   );
